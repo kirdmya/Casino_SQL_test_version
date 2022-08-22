@@ -21,7 +21,7 @@ connection = f"""
     Trust_Connection=yes;
 """
 
-conn1 = odbc.connect(connection1)
+conn = odbc.connect(connection)
 
 # Проверка на подключение
 # print(conn)

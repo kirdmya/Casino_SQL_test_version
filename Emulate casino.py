@@ -1,5 +1,6 @@
 import pypyodbc as odbc
 from art import tprint
+from random import randint
 
 tprint('CASINO 777', font='bulbhead')
 
@@ -40,9 +41,10 @@ def sign_up():
         print(f"""INSERT INTO dbo.Users 
              VALUES ('{login}','{password}',0);
                 """)
-        cursor.execute("INSERT INTO dbo.Users VALUES ('{}','{}',0);".format(login,password))
+        cursor.execute("INSERT INTO dbo.Users VALUES ('{}','{}',0);".format(login, password))
         conn.commit()
         print("\nРегистрация завершена!")
+
 
 def sign_in():
     login = input("Введите логин: ")
@@ -95,11 +97,11 @@ def sign_menu(login):
             choice = int(input("Действие: "))
             match choice:
                 case 1:
-                    pass
+                    roulette(login)
                 case 2:
                     pass
                 case 3:
-                    pass
+                    balance(login)
                 case 4:
                     print(f"Всего доброго, {login}!")
                     break
@@ -107,6 +109,90 @@ def sign_menu(login):
             print("Введено неверное значение")
 
 
+def roulette(login):
+    print("\nДобро пожаловать в рулетку")
+    while True:
+        # print("Счет: {:0.2f}$".format(cash))
+        # variat = []
+        print("\n1) Четное значение"
+              "\n2) Нечетное значение"
+              "\n3) Красное"
+              "\n4) Черное"
+              "\n5) Точное значение"
+              "\n6) Выйти")
+        try:
+            choice = int(input("Действие: "))
+            match choice:
+                case 1:
+                    variat = [i for i in range(2, 37, 2)]
+                    kf = 2
+                    # print(variat)
+                case 2:
+                    variat = [i for i in range(1, 36, 2)]
+                    # print(variat)
+                    kf = 2
+                case 3:
+                    variat = [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 30, 32, 34, 36]
+                    kf = 2
+                case 4:
+                    variat = [2, 4, 6, 8, 10, 11, 13, 15, 17, 20, 22, 24, 26, 28, 29, 31, 33, 35]
+                    kf = 2
+                case 5:
+                    num = int(input("Введите число от 1 до 36: "))
+                    variat = []
+                    variat.append(num)
+                    kf = 36
+                case 6:
+                    break
+                case _:
+                    break
+        except ValueError:
+            print("Введено неверное значение")
+        cursor.execute(f"""
+                   SELECT Cash
+                   FROM Users
+                   WHERE Login={login}
+               """)
+        for line in cursor:
+            cash = line[0]
+        summ = int(input("Введите сумму ставки: "))
+        if summ > cash:
+            print("Ошибка! Недостаточно средств!")
+            break
+
+
+        a = randint(0, 36)
+        print(a)
+        print(a in variat)
+        if a in variat:
+            cursor.execute(f"""
+                UPDATE Users 
+                SET cash={cash+summ*(kf-1)} 
+                WHERE Login={login}
+                           """)
+        else:
+            cursor.execute(f"""
+                    UPDATE Users 
+                    SET cash={cash - summ} 
+                    WHERE Login={login}
+                                       """)
+        conn.commit()
+
+def balance(login):
+    money = int(input("Введите сумму, на которую хотите пополнить счет"))
+    cursor.execute(f"""
+                       SELECT Cash
+                       FROM Users
+                       WHERE Login={login}
+                   """)
+    for line in cursor:
+        cash = line[0]
+    cursor.execute(f"""
+           UPDATE Users 
+           SET cash={cash + money} 
+           WHERE Login={login}
+                      """)
+    conn.commit()
 def main():
     initializ()
 
