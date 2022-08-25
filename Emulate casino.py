@@ -1,6 +1,7 @@
 import pypyodbc as odbc
 from art import tprint
 from random import randint
+from random import choice
 
 tprint('CASINO 777', font='bulbhead')
 
@@ -62,7 +63,7 @@ def sign_in():
         cursor.execute(f"""
                     SELECT Password
                     FROM Users
-                    WHERE Login={login}
+                    WHERE Login='{login}'
                 """)
         TRUE_PASS = False
         for line in cursor:
@@ -77,14 +78,13 @@ def sign_in():
     else:
         print("Неверный логин! Повторите попытку.")
 
-
 def sign_menu(login):
     print(f"Добро пожаловать, {login}")
     while True:
         cursor.execute(f"""
            SELECT Cash
            FROM Users
-           WHERE Login={login}
+           WHERE Login='{login}'
        """)
         for line in cursor:
             cash = line[0]
@@ -99,7 +99,7 @@ def sign_menu(login):
                 case 1:
                     roulette(login)
                 case 2:
-                    pass
+                    slot(login)
                 case 3:
                     balance(login)
                 case 4:
@@ -151,7 +151,7 @@ def roulette(login):
         cursor.execute(f"""
                    SELECT Cash
                    FROM Users
-                   WHERE Login={login}
+                   WHERE Login='{login}'
                """)
         for line in cursor:
             cash = line[0]
@@ -168,43 +168,79 @@ def roulette(login):
             cursor.execute(f"""
                 UPDATE Users 
                 SET cash={cash+summ*(kf-1)} 
-                WHERE Login={login}
+                WHERE Login='{login}'
                            """)
+            print('Поздравляем!')
         else:
             cursor.execute(f"""
                     UPDATE Users 
                     SET cash={cash - summ} 
-                    WHERE Login={login}
+                    WHERE Login='{login}'
                                        """)
         conn.commit()
-
 def balance(login):
-    money = int(input("Введите сумму, на которую хотите пополнить счет"))
+    money = int(input("Введите сумму, на которую хотите пополнить счет: "))
     cursor.execute(f"""
                        SELECT Cash
                        FROM Users
-                       WHERE Login={login}
+                       WHERE Login='{login}'
                    """)
     for line in cursor:
         cash = line[0]
     cursor.execute(f"""
            UPDATE Users 
-           SET cash={cash + money} 
-           WHERE Login={login}
+           SET Cash={cash + money} 
+           WHERE Login='{login}'
                       """)
+def slot(login):
+    print("\nДобро пожаловать! 1 слот = 50$")
+    cursor.execute(f"""
+                       SELECT Cash
+                       FROM Users
+                       WHERE Login='{login}'
+                   """)
+    for line in cursor:
+        cash = line[0]
+    if cash<50:
+        print("Ошибка! Недостаточно средств!")
+    else:
+        m = ['🍌','🍇','🍍']
+        a = choice(m)
+        b = choice(m)
+        c = choice(m)
+        print(a,b,c)
+        if a==b and b==c:
+            print('Поздравляем!')
+            cursor.execute(f"""
+                    UPDATE Users 
+                    SET cash={cash*10} 
+                    WHERE Login='{login}'
+                               """)
+        elif a==b or b==c or a==c:
+            print('Поздравляем!')
+            cursor.execute(f"""
+                    UPDATE Users 
+                    SET cash={cash*2} 
+                    WHERE Login='{login}'
+                               """)
+        else:
+            cursor.execute(f"""
+                        UPDATE Users 
+                        SET cash={cash-50} 
+                        WHERE Login='{login}'
+                                           """)
     conn.commit()
 def main():
     initializ()
 
 
 DRIVER_NAME = "SQL Server"
-SERVER_NAME = "WIN\SQLEXPRESS"
+SERVER_NAME = "LAPTOP-4ARO0MSO\SQLEXPRESS"
 DATABASE_NAME = "Casino"
 
 connection = f"""
     DRIVER={{{DRIVER_NAME}}};
-    SERVER={SERVER_NAME};
-    DATABASE={DATABASE_NAME};
+    SERVER={SERVER_NAME};    DATABASE={DATABASE_NAME};
     Trust_Connection=yes;
 """
 

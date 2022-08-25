@@ -5,21 +5,14 @@ import pypyodbc as odbc
 """
 
 DRIVER_NAME = "SQL Server"
-SERVER_NAME = "WIN\SQLEXPRESS"
+SERVER_NAME = "LAPTOP-4ARO0MSO\SQLEXPRESS"
 DATABASE_NAME = "Casino"
 
 connection = f"""
     DRIVER={{{DRIVER_NAME}}};
     SERVER={SERVER_NAME};
-    DATABASE=Casino};
-    Trust_Connection=yes;
-"""
-connection = f"""
-    DRIVER={{{DRIVER_NAME}}};
-    SERVER={SERVER_NAME};
-    DATABASE=Table2;
-    Trust_Connection=yes;
-"""
+    DATABASE={DATABASE_NAME};
+    Trust_Connection=yes;"""
 
 conn = odbc.connect(connection)
 
