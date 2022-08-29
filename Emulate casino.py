@@ -72,7 +72,20 @@ def sign_in():
                 break
         if TRUE_PASS:
             print("Авторизация прошла успешно\n")
-            sign_menu(login)
+            if login == 'admin':
+                print("\n1) Меню пользователя"
+                      "\n2) Меню администратора")
+                try:
+                    choice = int(input("Действие: "))
+                    match choice:
+                        case 1:
+                            sign_menu(login)
+                        case 2:
+                            admin(login)
+                except ValueError:
+                    print("Введено неверное значение")
+            else:
+                sign_menu(login)
         else:
             print("Неверный пароль! Повторите попытку. Для выхода введите 0")
     else:
@@ -160,7 +173,6 @@ def roulette(login):
             print("Ошибка! Недостаточно средств!")
             break
 
-
         a = randint(0, 36)
         print(a)
         print(a in variat)
@@ -170,6 +182,10 @@ def roulette(login):
                 SET cash={cash+summ*(kf-1)} 
                 WHERE Login='{login}'
                            """)
+            cursor.execute(f"""
+                INSERT INTO dbo.Operations
+                VALUES ('{login}',{summ * (kf - 1)},3);
+                            """)
             print('Поздравляем!')
         else:
             cursor.execute(f"""
@@ -177,6 +193,10 @@ def roulette(login):
                     SET cash={cash - summ} 
                     WHERE Login='{login}'
                                        """)
+            cursor.execute(f"""
+                            INSERT INTO dbo.Operations
+                            VALUES ('{login}',{-summ},3);
+                                        """)
         conn.commit()
 def balance(login):
     money = int(input("Введите сумму, на которую хотите пополнить счет: "))
@@ -192,8 +212,13 @@ def balance(login):
            SET Cash={cash + money} 
            WHERE Login='{login}'
                       """)
+    cursor.execute(f"""
+            INSERT INTO dbo.Operations
+            VALUES ('{login}',{money},1);
+                         """)
+    conn.commit()
 def slot(login):
-    print("\nДобро пожаловать! 1 слот = 50$")
+    print("\nДобро пожаловать! 1 слот = 50$. 1 ряд по вертикали, горизонтали или диагонали совпадает - *2 выигрыш. Все значения совпадают - *10 выигрыш. ")
     cursor.execute(f"""
                        SELECT Cash
                        FROM Users
@@ -205,10 +230,19 @@ def slot(login):
         print("Ошибка! Недостаточно средств!")
     else:
         m = ['🍌','🍇','🍍']
-        a = choice(m)
-        b = choice(m)
-        c = choice(m)
-        print(a,b,c)
+        a = []
+        b = []
+        c = []
+        for i in range(3):
+            n = choice(m)
+            a.append(n)
+        for i in range(3):
+            n = choice(m)
+            b.append(n)
+        for i in range(3):
+            n = choice(m)
+            c.append(n)
+        print(a,b,c,sep="\n")
         if a==b and b==c:
             print('Поздравляем!')
             cursor.execute(f"""
@@ -216,20 +250,86 @@ def slot(login):
                     SET cash={cash*10} 
                     WHERE Login='{login}'
                                """)
-        elif a==b or b==c or a==c:
+            cursor.execute(f"""
+                    INSERT INTO dbo.Operations
+                    VALUES ('{login}',{cash*10},2);
+                                """)
+        elif a[0]==a[1]==a[2] or b[0]==b[1]==b[2] or c[0]==c[1]==c[2] or a[0]==b[1]==c[2] or a[2]==b[1]==c[0] or a[0]==b[0]==c[0] or a[1]==b[1]==c[1] or a[2]==b[2]==c[2]:
             print('Поздравляем!')
             cursor.execute(f"""
                     UPDATE Users 
                     SET cash={cash*2} 
                     WHERE Login='{login}'
                                """)
+            cursor.execute(f"""
+                    INSERT INTO dbo.Operations
+                    VALUES ('{login}',{cash},2);
+                                """)
         else:
             cursor.execute(f"""
                         UPDATE Users 
                         SET cash={cash-50} 
                         WHERE Login='{login}'
                                            """)
+            cursor.execute(f"""
+                        INSERT INTO dbo.Operations
+                        VALUES ('{login}',{-50},2);
+                                    """)
     conn.commit()
+def admin(login):
+    print(f"Добро пожаловать, admin")
+    while True:
+        print("\n1) Общий баланс"
+              "\n2) Статистика по логину"
+              "\n3) Статистика по видам игр"
+              "\n4) Выйти")
+        try:
+            choice = int(input("Действие: "))
+            match choice:
+                case 1:
+                    general_balance()
+                case 2:
+                    log = input('Введите логин пользователя: ')
+                    login_stat(log)
+                case 3:
+                    code = int(input('Введите код игры: '))
+                    game_stat(code)
+                case 4:
+                    print(f"Всего доброго, {login}!")
+                    break
+        except ValueError:
+            print("Введено неверное значение")
+    conn.commit()
+def general_balance():
+    cursor.execute(f"""
+               SELECT SUM(Transfer)
+               FROM Operations
+           """)
+    for line in cursor:
+        balance = line[0]
+    print("Общий баланс: {:0.2f}$".format(balance))
+def login_stat(log):
+    cursor.execute(f"""
+                           SELECT Password, Cash
+                           FROM Users
+                           WHERE Login='{log}'
+                       """)
+    for line in cursor:
+        password = line[0]
+        cash = line[1]
+    print("Баланс пользователя: {:0.2f}$".format(cash))
+    print("Пароль пользователя: ", password)
+def game_stat(code):
+    cursor.execute(f"""
+                           SELECT Login, SUM(Transfer)
+                           FROM Operations
+                           WHERE Code='{code}'
+                       """)
+    for line in cursor:
+        login = line[0]
+        balance = line[1]
+    print("В эту игру играли пользователи: ", login)
+    print("Баланс игры: {:0.2f}$".format(balance))
 def main():
     initializ()
 

@@ -41,16 +41,18 @@ conn.commit()
 """
 Создадим таблицу:
 Operations:
-    IDOper
-    IDUser
+    Code
+    Login
     Transfer
 """
-
+"""Code 1 - Пополнение баланса
+Code 2 - Слоты
+Code 3 - Рулетка"""
 cursor.execute(f"""
     CREATE TABLE Operations (
-        IDOper int NOT NULL,
         Login varchar(30) NOT NULL,
-        Transfer money NOT NULL   
+        Transfer money NOT NULL,
+        Code int NOT NULL   
     );
 """)
 
