@@ -45,7 +45,7 @@ Operations:
     Login
     Transfer
 """
-"""Code 1 - Пополнение баланса
+"""Code 1 - Пополнение/вывод 
 Code 2 - Слоты
 Code 3 - Рулетка"""
 cursor.execute(f"""

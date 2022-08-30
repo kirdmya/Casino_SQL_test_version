@@ -105,7 +105,8 @@ def sign_menu(login):
         print("\n1) Рулетка"
               "\n2) Слоты"
               "\n3) Пополнить баланс"
-              "\n4) Выйти")
+              "\n4) Вывести деньги"
+              "\n5) Выйти")
         try:
             choice = int(input("Действие: "))
             match choice:
@@ -116,6 +117,8 @@ def sign_menu(login):
                 case 3:
                     balance(login)
                 case 4:
+                    withdrawal(login)
+                case 5:
                     print(f"Всего доброго, {login}!")
                     break
         except ValueError:
@@ -215,6 +218,25 @@ def balance(login):
     cursor.execute(f"""
             INSERT INTO dbo.Operations
             VALUES ('{login}',{money},1);
+                         """)
+    conn.commit()
+def withdrawal(login):
+    money = int(input("Введите сумму, которую хотите вывести: "))
+    cursor.execute(f"""
+                       SELECT Cash
+                       FROM Users
+                       WHERE Login='{login}'
+                   """)
+    for line in cursor:
+        cash = line[0]
+    cursor.execute(f"""
+           UPDATE Users 
+           SET Cash={cash - money} 
+           WHERE Login='{login}'
+                      """)
+    cursor.execute(f"""
+            INSERT INTO dbo.Operations
+            VALUES ('{login}',{-money},1);
                          """)
     conn.commit()
 def slot(login):
